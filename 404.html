@@ -4,27 +4,13 @@
   <meta charset="utf-8">
   <title>Dev Docs</title>
   <script type="text/javascript">
-    // Verificar se é uma rota de callback do OAuth
-    var path = window.location.pathname;
-    var isCallback = path.indexOf('/auth/callback') !== -1;
-    
-    if (isCallback) {
-      // Se for uma rota de callback, redirecionar diretamente para a página de callback
-      window.location.replace('/documentacao/auth/callback' + window.location.search);
-    } else {
-      // Para outras rotas, usar o redirecionamento padrão
-      var pathSegmentsToKeep = 1;
-      var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
-    }
+    // Script simplificado para evitar recursão
+    // Redireciona para a página inicial
+    window.location.replace('/documentacao/');
   </script>
 </head>
 <body>
+  <h2>Página não encontrada</h2>
+  <p>Redirecionando para a página inicial...</p>
 </body>
 </html>
