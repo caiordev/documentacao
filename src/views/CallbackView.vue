@@ -15,7 +15,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
-import { githubService } from '../services/githubService'
+import axios from 'axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -32,46 +32,40 @@ onMounted(async () => {
       throw new Error('Código de autorização não encontrado na URL de callback')
     }
     
+    // For GitHub's OAuth implementation, we need to use our server as a proxy
     try {
-      // Obter as credenciais do GitHub das variáveis de ambiente
-      const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID
-      const clientSecret = import.meta.env.VITE_GITHUB_CLIENT_SECRET
+      console.log('Código de autorização obtido:', code)
+      // URI de redirecionamento sem o caminho base /documentacao/
+      const redirectUri = `${window.location.origin}/auth/callback`
+      console.log('Redirect URI usado:', redirectUri)
       
-      // Determinar o redirect URI baseado no ambiente
-      let redirectUri;
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        // Ambiente de desenvolvimento
-        redirectUri = `${window.location.origin}/auth/callback`;
-      } else {
-        // Ambiente de produção (GitHub Pages)
-        redirectUri = 'https://caiordev.github.io/documentacao/auth/callback';
-      }
+      // Make a request to our API serverless function on Vercel
+      console.log('Enviando solicitação para a API na Vercel...')
+      const apiUrl = window.location.origin + '/api/github/token'
+      console.log('URL da API:', apiUrl)
+      const tokenResponse = await axios.post(apiUrl, {
+        code: code,
+        redirect_uri: redirectUri
+      })
       
-      // Log para depuração
-      console.log('Callback - Redirect URI:', redirectUri);
+      console.log('Resposta completa do servidor:', tokenResponse.data)
       
-      // Usar o serviço do GitHub diretamente para trocar o código por um token
-      const tokenData = await githubService.exchangeCodeForToken(
-        code,
-        redirectUri,
-        clientId,
-        clientSecret
-      )
-      
-      // Extrair o token de acesso da resposta
-      const accessToken = tokenData.access_token
+      // Extract the access token from the response
+      const accessToken = tokenResponse.data.access_token
+      console.log('Token de acesso extraído:', accessToken)
       
       if (!accessToken) {
+        console.error('Token não encontrado na resposta:', tokenResponse.data)
         throw new Error('Token não recebido do GitHub')
       }
       
-      // Armazenar o token
+      // Store the token
       authStore.setToken(accessToken)
       
-      // Buscar o perfil do usuário com o token
+      // Fetch the user profile with the real token
       await authStore.fetchUserProfile()
       
-      // Redirecionar para a página inicial
+      // Redirect to home page
       router.push('/')
     } catch (exchangeError) {
       throw new Error('Erro ao trocar o código por um token: ' + exchangeError.message)

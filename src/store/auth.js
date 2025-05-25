@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { githubService } from '../services/githubService'
+import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -31,12 +31,16 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       
       try {
-        // Usar o serviço do GitHub diretamente
-        const userData = await githubService.getUserProfile(this.token)
+        // Use our server API to fetch the GitHub user profile
+        const response = await axios.get('/api/github/user', {
+          headers: {
+            'Authorization': `Bearer ${this.token}`
+          }
+        })
         
-        this.user = userData
+        this.user = response.data
         this.loading = false
-        return userData
+        return response.data
       } catch (error) {
         this.error = error.message || 'Falha ao carregar perfil do usuário'
         this.loading = false
@@ -56,25 +60,13 @@ export const useAuthStore = defineStore('auth', {
     },
     
     getLoginUrl() {
-      const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID
-      
-      // Determinar o redirect URI baseado no ambiente
-      let redirectUri;
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        // Ambiente de desenvolvimento
-        redirectUri = `${window.location.origin}/auth/callback`;
-      } else {
-        // Ambiente de produção (GitHub Pages)
-        redirectUri = 'https://caiordev.github.io/documentacao/auth/callback';
-      }
-      
-      // Log para depuração
-      console.log('Redirect URI:', redirectUri);
-      
+      const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID 
+      // URI de redirecionamento sem o caminho base /documentacao/
+      const redirectUri = `${window.location.origin}/auth/callback`
       // Solicitando escopo repo para acessar repositórios privados
-      const scope = 'repo+user';
+      const scope = 'repo+user'
       
-      return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}`;
+      return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}`
     }
   }
 })

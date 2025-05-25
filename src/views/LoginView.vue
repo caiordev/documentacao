@@ -5,7 +5,7 @@
         <img src="../assets/github.svg" alt="GitHub Logo" class="login-logo" />
         <h1>Dev Docs</h1>
         <p>Acesse a documentação dos seus projetos GitHub</p>
-        <p class="version-info">Versão atualizada: 1.0.2 - NOVA ATUALIZAÇÃO!</p>
+        <p class="version-info">Versão atualizada: 1.0.1</p>
       </div>
       
       <div class="login-body">

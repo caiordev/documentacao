@@ -10,13 +10,18 @@ export const githubService = {
   // Autenticação
   async exchangeCodeForToken(code, redirectUri, clientId, clientSecret) {
     try {
+      console.log('Trocando código por token via servidor simple.cjs');
+      console.log('Redirect URI:', redirectUri);
+      
+      // Usar a API serverless na Vercel
+      const apiUrl = window.location.origin + '/api/github/token'
+      console.log('URL da API:', apiUrl)
       const response = await axios.post(
-        `${GITHUB_AUTH_API}`, 
+        apiUrl, 
         {
-          client_id: clientId,
-          client_secret: clientSecret,
           code: code,
           redirect_uri: redirectUri
+          // Não precisamos enviar client_id e client_secret, pois o servidor já os obtém das variáveis de ambiente
         }, 
         {
           headers: {
@@ -24,12 +29,19 @@ export const githubService = {
             'Content-Type': 'application/json'
           }
         }
-      )
+      );
       
-      return response.data
+      console.log('Resposta do servidor:', response.data);
+      return response.data;
     } catch (error) {
-      console.error('Erro ao trocar código por token:', error)
-      throw error
+      console.error('Erro ao trocar código por token:', error);
+      
+      // Mensagem de erro mais detalhada
+      if (error.response) {
+        console.error('Detalhes do erro:', error.response.data);
+      }
+      
+      throw error;
     }
   },
   

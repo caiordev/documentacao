@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { githubService } from '../services/githubService'
+import axios from 'axios'
 
 export const useProjectsStore = defineStore('projects', {
   state: () => ({
@@ -28,12 +28,16 @@ export const useProjectsStore = defineStore('projects', {
           throw new Error('Usuário não autenticado')
         }
         
-        // Usar o serviço do GitHub diretamente
-        const repositories = await githubService.getRepositories(token)
+        // Use our server API to fetch GitHub repositories
+        const response = await axios.get('/api/github/repos', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
         
-        this.projects = repositories
+        this.projects = response.data
         this.loading = false
-        return repositories
+        return response.data
       } catch (error) {
         this.error = error.message || 'Falha ao carregar projetos'
         this.loading = false
